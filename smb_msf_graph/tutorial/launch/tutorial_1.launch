@@ -5,7 +5,7 @@
     <arg name="noisify_imu" default="false" />
 
     <!-- Topics -->
-    <arg name="imu_topic_name"            default="/imu" />
+    <arg name="imu_topic_name" default="/imu" />
 
     <!-- Config Files -->
     <arg name="core_graph_param_file" default="$(find smb_msf_graph)/tutorial/config/1/core_graph_params.yaml"/>
