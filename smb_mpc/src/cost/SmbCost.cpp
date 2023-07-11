@@ -19,10 +19,8 @@ SmbCost::SmbCost(ocs2::matrix_t QPosition, ocs2::matrix_t QOrientation,
              recompileLibraries, true);
 }
 
-ad_vector_t SmbCost::costVectorFunction(ad_scalar_t time,
-                                        const ad_vector_t &state,
-                                        const ad_vector_t &input,
-                                        const ad_vector_t &parameters) const {
+ad_vector_t SmbCost::costVectorFunction(ad_scalar_t time, const ad_vector_t &state, 
+  const ad_vector_t &input, const ad_vector_t &parameters) const {
 
   using ad_quat_t = Eigen::Quaternion<ad_scalar_t>;
   using ad_mat_t = Eigen::Matrix<ad_scalar_t, -1, -1>;
@@ -43,11 +41,17 @@ ad_vector_t SmbCost::costVectorFunction(ad_scalar_t time,
   ad_vector_t orientationError = ad_vector_t::Zero(3);
   ad_vector_t inputError = ad_vector_t::Zero(2);
 
-  /// TODO: Compute cost terms positionError, orientationError, and inputError
-  /// here. For Task 2, overwrite currentPosition and currentOrientation with
-  /// the desired setpoint. For Task 3, keep the values set in L33-34 You can
-  /// use the weight matricies QPosition, QOrientation and R for Task 4.
+  // Compute cost terms positionError, orientationError, and inputError
 
+  // For Task 2, overwrite currentPosition and currentOrientation with the desired setpoint.
+  // For Task 3, keep the values set in L33-34
+  // You can use the weight matricies QPosition, QOrientation and R for Task 4.
+  desiredPosition << (ad_scalar_t)2.0, (ad_scalar_t)5.0, (ad_scalar_t)0.0;
+  desiredOrientation = ad_quat_t(ad_angle_axis_t((ad_scalar_t)M_PI/2, ad_vec3_t::UnitZ()));
+
+  positionError = currentPosition - desiredPosition;
+  orientationError = (desiredOrientation.conjugate() * currentOrientation).vec();
+  inputError = input;
 
   ad_vector_t totalCost(positionError.size() + orientationError.size() +
                         inputError.size());
@@ -56,9 +60,7 @@ ad_vector_t SmbCost::costVectorFunction(ad_scalar_t time,
   return totalCost;
 }
 
-vector_t
-SmbCost::getParameters(scalar_t time,
-                       const TargetTrajectories &costDesiredTrajectory) const {
+vector_t SmbCost::getParameters(scalar_t time, const TargetTrajectories &costDesiredTrajectory) const {
   const auto &desiredStateTrajectory = costDesiredTrajectory.stateTrajectory;
   const auto &desiredTimeTrajectory = costDesiredTrajectory.timeTrajectory;
   int numPoses = desiredTimeTrajectory.size();
@@ -66,16 +68,30 @@ SmbCost::getParameters(scalar_t time,
   Eigen::Quaterniond referenceOrientation = Eigen::Quaterniond::Identity();
 
   if (desiredStateTrajectory.size() > 1) {
-    // TODO: Compute  referencePosition and referenceOrientation implementation
-    // function here. You can use
-    // SmbConversions::readRotation(desiredStateTrajectory[index]) -->
-    // Eigen::Quaterniond to get the reference quaternion and
-    // SmbConversions::readPosition(desiredStateTrajectory[index]) -->
-    // Eigen::Vector3d to get the reference position.
-    // desiredTimeTrajectory is an std::vector<double> of the reference
-    // timestamps.
 
-  } else { // desiredStateTrajectory.size() == 1, Do not change this
+    if (time > desiredTimeTrajectory.front()) {
+      referencePosition = SmbConversions::readPosition(desiredStateTrajectory.back());
+      referenceOrientation = SmbConversions::readRotation(desiredStateTrajectory.back());
+    }
+    else if (time < desiredTimeTrajectory.front()) {
+      referencePosition = SmbConversions::readPosition(desiredStateTrajectory.front());
+      referenceOrientation = SmbConversions::readRotation(desiredStateTrajectory.front());
+    }
+    else {
+      int i = 0;
+      while (i < numPoses && desiredTimeTrajectory[i] < time) i++;
+      double t_back = desiredTimeTrajectory[i-1];
+      double t_front = desiredTimeTrajectory[i];
+      double alpha = (time - t_back) / (t_front - t_back);
+      Eigen::VectorXd idx_back = desiredStateTrajectory[i-1];
+      Eigen::VectorXd idx_front = desiredStateTrajectory[i];
+      referencePosition = (1 - alpha) * SmbConversions::readPosition(idx_back) 
+        + alpha * SmbConversions::readPosition(idx_front);
+      referenceOrientation = 
+        SmbConversions::readRotation(idx_back).slerp(alpha, SmbConversions::readRotation(idx_front));
+    }
+  }
+  else { // desiredStateTrajectory.size() == 1, Do not change this
     referencePosition = SmbConversions::readPosition(desiredStateTrajectory[0]);
     referenceOrientation =
         SmbConversions::readRotation(desiredStateTrajectory[0]);
