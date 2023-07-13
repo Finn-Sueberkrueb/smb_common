@@ -25,4 +25,10 @@ rosbag record --output-name=${outpath}/${now}"_smb" \
 /imu \
 /rslidar/points  \
 /tf \
-/tf_static
+/tf_static \
+/control/smb_diff_drive/odom \
+/control/smb_lowlevel_controller/wheelSpeeds \
+/rgb_camera/camera_info \
+/rgb_camera/image_raw \
+//detection_info \
+//object_poses

@@ -24,7 +24,7 @@ Here are different modes of operation:
      Run the following command to start running online SLAM. You can save the map at any point by using rosservice or the map will automatically get saved upon closing the node. Make sure that you specify the correct full path of the bag file using the `rosbag_full_path` argument. Alternatively, you can instead specify the folder path and filename using the arguments `bag_folder_path` and `bag_filename` repectively. The `loop closure` will be enabled by default in this case of offline map creation.
      
       ```
-      roslaunch smb_slam build_map_from_bag.launch rosbag_full_path:="ABSOULTE PATH TO BAG FILE"
+      roslaunch smb_slam build_map_from_bag.launch rosbag_full_path:="/home/zilong/git/xxx.bag"
       ```
 
 2. Running in Online SLAM Mode:

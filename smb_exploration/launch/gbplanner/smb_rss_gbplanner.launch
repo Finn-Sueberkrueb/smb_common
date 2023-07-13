@@ -40,6 +40,7 @@
     <rosparam command="load" file="$(arg pci_file)" />
   </node>
 
-  <node pkg="rviz" type="rviz" name="gbplanner_ui" output="screen" args="-d $(find smb_exploration)/config/gbplanner/rviz/smb.rviz" if="$(arg launch_rviz)"/>
+  <node pkg="rviz" type="rviz" name="gbplanner_ui" output="screen"
+    args="-d $(find smb_exploration)/config/gbplanner/rviz/smb.rviz" if="$(arg launch_rviz)"/>
 
 </launch>
